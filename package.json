@@ -11,6 +11,8 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "fixed-data-table": "^0.4.6",
+    "moment": "^2.10.6",
     "ramda": "^0.17.1",
     "react": "^0.13.3",
     "react-redux": "^2.1.2",

@@ -2,13 +2,16 @@ import React from 'react';
 import R from 'ramda';
 import moment from 'moment';
 import { Router, Route, Link } from 'react-router';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 
 import {inspectedElement, users} from './data_mocks';
 
+import thunkMiddleware from 'redux-thunk';
 import FixedDataTable from 'fixed-data-table';
 const Table = FixedDataTable.Table;
 const Column = FixedDataTable.Column;
+
+import fetch from 'isomorphic-fetch';
 
 const defaultState = {
     users: users,
@@ -16,6 +19,31 @@ const defaultState = {
     visibleUsers: users,
     searchFilter: null,
 };
+
+const createStoreWithMiddleware = applyMiddleware(
+    thunkMiddleware // lets us dispatch() functions
+)(createStore);
+const store = createStoreWithMiddleware(mainReducer);
+
+function receiveUsers(users) {
+    return {
+        type: 'RECEIVE_USERS',
+        users: users,
+    };
+}
+
+function fetchData() {
+  return dispatch => {
+      return fetch('http://localhost:8080/mock/user_mock.json')
+        .then(response => response.json())
+        .then(json => dispatch(receiveUsers(json)))
+    }
+}
+
+store.dispatch(fetchData())
+.then(() => {
+    console.error(store.getState());
+});
 
 // types. addUser
 function mainReducer(state = defaultState, action) {
@@ -45,12 +73,16 @@ function mainReducer(state = defaultState, action) {
             });
         case 'SEARCH_FILTER':
             return updateUsers();
+        case 'RECEIVE_USERS':
+            return Object.assign({}, state, {
+                users: action.users,
+                visibleUsers: action.users,
+            });
         default: 
             return state;
     }
 }
 
-let store = createStore(mainReducer);
 
 class App extends React.Component {
     constructor(props) {
@@ -106,7 +138,6 @@ class App extends React.Component {
         function rowGetter(rowIndex) {
             const a = inspectUser.actions[rowIndex];
             const props = a.properties;
-            console.error(props);
             const list =  [
                 [a.event, moment.unix(props.time).format('YYYY-MM-DD hh:ss'), props.distinct_id, props.$os, props.$current_url]
             ];

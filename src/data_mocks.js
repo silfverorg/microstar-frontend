@@ -47,16 +47,4 @@ export const inspectedElement = [
 ];
 
 export const users = [
-    {
-        name: 'Kalle',
-        id: 1,
-    },
-    {
-        name: 'Johan',
-        id: 2,
-    },
-    {
-        name: 'Gustav',
-        id: 3,
-    }
 ];
